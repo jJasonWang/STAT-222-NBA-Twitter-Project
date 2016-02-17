@@ -46,6 +46,12 @@ X <- tweet_NBA[setdiff(names(tweet_NBA),
 
 row.names(X) <- tweet_NBA$Player
 
+names(X) <- c("#ofTweets", "Followers", "Friends",
+              "Game", "GameStarted", "MinutePlayed",
+              "3PM", "3PA", "2PM", "2PA", "FTM", "FTA",
+              "ORB", "DRB", "Assist", "Steal", "Block",
+              "Turnover", "Foul", "Point")
+
 # Correlation matrix
 cor_mat <- cor(X)
 # Change it into a long format data.frame
@@ -58,14 +64,16 @@ cor_df$Var1 <- factor(as.character(cor_df$Var1), levels=rev(names(X)))
 g1 <- ggplot(cor_df, aes(x=Var1, y=Var2, fill=value)) +
   geom_tile() + coord_flip() +
   scale_fill_distiller(palette="RdBu", limit=c(-1, 1)) + 
-  labs(title="Correlation matrix", x="", y="") +
-  theme(axis.text.x=element_text(angle=30, vjust=0.8, size=15),
-        axis.text.y=element_text(size=20),
-        plot.title=element_text(size=25, face="bold"),
+  labs(title="Tweet and Performance Correlation Matrix", x="", y="") +
+  theme(plot.title=element_text(size=25, face="bold"),
+        axis.text.y=element_text(size=15),
         legend.text=element_text(size=12),
-        legend.title=element_text(size=15))
-
+        legend.title=element_text(size=15), axis.text.x=element_blank(), axis.ticks.x=element_blank())
+# axis.text.x=element_blank(), axis.ticks.x=element_blank()
 g1
+
+
+
 
 #----------Second----------
 #Divided turnover into 3 categories.
@@ -79,15 +87,15 @@ g2 <- ggplot(tweet_NBA, aes(x=PTS, y=log(followers), color=TOV2)) +
   scale_color_discrete("Turnover",
                        breaks= c("[0,50]", "(50,100]", "(100,Inf]"),
                        labels=c("< 50", "50 ~ 100", "> 100")) + 
-  labs(title="Followers(log scale) v.s. Points",
-       x="Points", y=expression(log(Followers))) +
+  labs(title="",
+       x="Points", y="Followers (log scale)") +
   theme(axis.text.x=element_text(size=13),
         axis.text.y=element_text(size=13),
-        axis.title.x=element_text(size=20),
-        axis.title.y=element_text(size=20),
+        axis.title.x=element_text(size=18),
+        axis.title.y=element_text(size=18),
         plot.title=element_text(size=25, face="bold"),
-        legend.title=element_text(size=17),
-        legend.text=element_text(size=12))
+        legend.title=element_text(size=15),
+        legend.text=element_text(size=10))
 
 g2
 
@@ -121,7 +129,7 @@ g3 <- ggplot(tweet_NBA, aes(x=GSP, y=log(followers), fill=GSP)) + geom_boxplot()
         legend.text=element_text(size=12))
 
 g3 + geom_text(data=top, aes(x=GSP, y=log(followers), label=Player),
-               vjust=-0.7, size=5)
+               vjust=-0.5, size=5)
 
 
 #----------Fourth----------
@@ -135,34 +143,43 @@ tweet_follow <- merge(follower, tweet_NBA, all.x=TRUE)
 tweet_follow$followers_team <- cut(tweet_follow$followers_in_team,
                                    c(0, 3, 7, Inf), include.lowest=TRUE)
 
+change_format <- function(l) {
+  # turn in to character string in scientific notation
+  l <- format(l, scientific = TRUE)
+  l <- sapply(l, function(x) strsplit(x, "e")[[1]][1])
+  # return this as an expression
+  parse(text=l)
+}
+
 ##########Figure4: Number of teammate following, assit, minute played##########
-g41 <- ggplot(tweet_follow, aes(x=log(AST), y=MP, color=followers_team)) +
+g41 <- ggplot(tweet_follow[tweet_follow$AST !=0, ], aes(x=log(AST), y=MP, color=followers_team)) +
   geom_point(size=3) +
-  labs(x=expression(log(Assists)), y="Minutes Played") +
+  labs(x="Assists (log scale)", y="Minutes Played") +
   theme(legend.position="none",
         axis.text.x=element_text(size=13),
         axis.text.y=element_text(size=13),
         axis.title.x=element_text(size=20),
-        axis.title.y=element_text(size=20))
+        axis.title.y=element_text(size=18))
+  
 
 g42 <- ggplot(tweet_follow, aes(x=MP, fill=followers_team, color=followers_team)) +
   geom_density(alpha=0.5) +
   scale_fill_discrete("# of\nfollower\nin team",
                       breaks=c("[0,3]", "(3,7]", "(7,Inf]"),
                       labels=c("< 3", "3 ~ 7", "> 7")) + 
-  coord_flip() + labs(x="") +
+  coord_flip() + labs(x="", y=expression(paste("Density (", 10^-4, ")"))) +
   scale_color_discrete(guide=FALSE) + 
-  theme(axis.text.x=element_text(size=13, vjust=0.5),
-        axis.text.y=element_text(size=13),
-        axis.title.x=element_text(size=20),
+  theme(axis.text.x=element_text(size=10),
+        axis.text.y=element_text(size=10),
+        axis.title.x=element_text(size=13),
         legend.title=element_text(size=17),
         legend.text=element_text(size=12))
 
 g43 <- ggplot(tweet_follow, aes(x=log(AST), fill=followers_team, color=followers_team)) +
-  geom_density(alpha=0.5) + labs(x="") + 
+  geom_density(alpha=0.5) + labs(x="", y="Density") + 
   theme(legend.position="none",
         axis.text.x=element_text(size=13),
-        axis.text.y=element_text(size=13),
+        axis.text.y=element_text(size=15),
         axis.title.y=element_text(size=20))
 
 # Function return the legend of a ggplot object
@@ -173,6 +190,6 @@ g_legend <- function(a.gplot){
   return(legend)
 }
 
-grid.arrange(g43, g_legend(g42), g41, g42 + theme(legend.position="none"),
+g <- arrangeGrob(g43, g_legend(g42), g41, g42 + scale_y_continuous(labels=change_format) + theme(legend.position="none"),
             ncol=2, widths=c(4, 2), heights=c(2, 4))
 
