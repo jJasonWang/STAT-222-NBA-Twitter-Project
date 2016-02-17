@@ -7,5 +7,3 @@
 * [Players' tweets json file](https://drive.google.com/a/berkeley.edu/folderview?id=0B5JiutD3geSVWVRmV2l5bDNWQW8&usp=sharing)
 
 * [Players' performance 2016](http://www.basketball-reference.com/leagues/NBA_2016_totals.html?lid=header_seasons)
-
-* [Poster](https://www.overleaf.com/4359420wwbcwc#/12979615/)
