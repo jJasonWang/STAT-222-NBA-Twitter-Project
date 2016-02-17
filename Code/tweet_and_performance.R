@@ -46,11 +46,24 @@ X <- tweet_NBA[setdiff(names(tweet_NBA),
 
 row.names(X) <- tweet_NBA$Player
 
-names(X) <- c("#ofTweets", "Followers", "Friends",
-              "Game", "GameStarted", "MinutePlayed",
-              "3PM", "3PA", "2PM", "2PA", "FTM", "FTA",
-              "ORB", "DRB", "Assist", "Steal", "Block",
-              "Turnover", "Foul", "Point")
+names(X) <- c("# of Tweets", "Followers", "Friends",
+              "Game", "Game Started", "Minute Played",
+              "3-Point Made", "3-Point Attempts",
+              "2-Point Made", "2-Point Attempts",
+              "Free Throw Made", "Free Throw Attempts",
+              "Offensive Rebound", "Defensive Rebound",
+              "Assists", "Steals", "Blocks",
+              "Turnovers", "Fouls", "Points")
+
+look_up <- c("Tweets", "Follow", "Friends",
+             "G", "GS", "MP",
+             "3PM", "3PA", "2PM", "2PA", "FTM", "FTA",
+             "ORB", "DRB", "AST", "STL", "BLK",
+             "TOV", "F", "PTS")
+names(look_up) <- names(X)
+match_label <- function(x){
+  look_up[x]
+}
 
 # Correlation matrix
 cor_mat <- cor(X)
@@ -63,12 +76,14 @@ cor_df$Var1 <- factor(as.character(cor_df$Var1), levels=rev(names(X)))
 ##########Figure1: Correlation matrix##########
 g1 <- ggplot(cor_df, aes(x=Var1, y=Var2, fill=value)) +
   geom_tile() + coord_flip() +
-  scale_fill_distiller(palette="RdBu", limit=c(-1, 1)) + 
+  scale_fill_distiller("Correlation", palette="RdBu", limits=c(-1, 1)) + 
+  scale_y_discrete(labels=match_label) +
   labs(title="Tweet and Performance Correlation Matrix", x="", y="") +
   theme(plot.title=element_text(size=25, face="bold"),
-        axis.text.y=element_text(size=15),
+        axis.text.x=element_text(size=12, angle=30, vjust=0.8),
+        axis.text.y=element_text(size=14),
         legend.text=element_text(size=12),
-        legend.title=element_text(size=15), axis.text.x=element_blank(), axis.ticks.x=element_blank())
+        legend.title=element_text(size=14))
 # axis.text.x=element_blank(), axis.ticks.x=element_blank()
 g1
 
@@ -82,20 +97,20 @@ tweet_NBA$TOV2 <- cut(tweet_NBA$TOV, c(0, 50, 100, Inf),
 
 ##########Figure2: Points, turnovers, follower##########
 g2 <- ggplot(tweet_NBA, aes(x=PTS, y=log(followers), color=TOV2)) +
-  geom_point(size=3) +
+  geom_point(size=2) +
   geom_smooth(data=tweet_NBA, aes(x=PTS, y=log(followers), group=1)) +
   scale_color_discrete("Turnover",
                        breaks= c("[0,50]", "(50,100]", "(100,Inf]"),
                        labels=c("< 50", "50 ~ 100", "> 100")) + 
-  labs(title="",
+  labs(title="Players' Number of Followers (log scale) vs. Points\nColor-Coded by Turnovers",
        x="Points", y="Followers (log scale)") +
   theme(axis.text.x=element_text(size=13),
         axis.text.y=element_text(size=13),
         axis.title.x=element_text(size=18),
         axis.title.y=element_text(size=18),
         plot.title=element_text(size=25, face="bold"),
-        legend.title=element_text(size=15),
-        legend.text=element_text(size=10))
+        legend.title=element_text(size=14),
+        legend.text=element_text(size=12))
 
 g2
 
@@ -153,12 +168,12 @@ change_format <- function(l) {
 
 ##########Figure4: Number of teammate following, assit, minute played##########
 g41 <- ggplot(tweet_follow[tweet_follow$AST !=0, ], aes(x=log(AST), y=MP, color=followers_team)) +
-  geom_point(size=3) +
+  geom_point(size=2) +
   labs(x="Assists (log scale)", y="Minutes Played") +
   theme(legend.position="none",
         axis.text.x=element_text(size=13),
         axis.text.y=element_text(size=13),
-        axis.title.x=element_text(size=20),
+        axis.title.x=element_text(size=18),
         axis.title.y=element_text(size=18))
   
 
@@ -189,7 +204,14 @@ g_legend <- function(a.gplot){
   legend <- tmp$grobs[[leg]]
   return(legend)
 }
-
-g <- arrangeGrob(g43, g_legend(g42), g41, g42 + scale_y_continuous(labels=change_format) + theme(legend.position="none"),
-            ncol=2, widths=c(4, 2), heights=c(2, 4))
+grid.arrange(g43, g_legend(g42), g41 + geom_jitter(width=0.2, height=0.1, size=2),
+             g42 + scale_y_continuous(labels=change_format) + theme(legend.position="none"),
+            ncol=2, widths=c(4, 2), heights=c(2, 4),
+            top=textGrob("In-team Followers vs. Assist and Minutes Played",
+                           gp=gpar(fontsize=25)))
+g <- arrangeGrob(g43, g_legend(g42), g41 + geom_jitter(width=0.2, height=0.1, size=2),
+                 g42 + scale_y_continuous(labels=change_format) + theme(legend.position="none"),
+                 ncol=2, widths=c(4, 2), heights=c(2, 4),
+                 top=textGrob("In-team Followers vs. Assist and Minutes Played",
+                              gp=gpar(fontsize=25)))
 
