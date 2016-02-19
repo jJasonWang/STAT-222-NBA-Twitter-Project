@@ -13,13 +13,14 @@ change_format <- function(l) {
   parse(text=l)
 }
 
-ggplot(data, aes(x=V1, weight=V2)) + geom_bar() +
+ggplot(data, aes(x=V1, weight=V2)) + geom_bar(fill="#619CFF",alpha = 0.5) +
   scale_y_continuous(labels=change_format) + 
-  labs(title="Title", x="Team", y="Number of Followers (Millions)") +
+  labs(title="NBA Team Twitter Followers", x="Team", y="Number of Followers (in Millions)") +
   theme(plot.title=element_text(size=25, face="bold"),
-        axis.text.x=element_text(size=12),
+        axis.text.x=element_text(size=12, angle = 90),
         axis.text.y=element_text(size=12),
         axis.title=element_text(size=15, face="bold"))
+
 
 data1 <- read.csv("time.csv", stringsAsFactors=FALSE, header=FALSE)
 data1$V1 <- strptime(data1$V1, "%Y/%m/%d")
