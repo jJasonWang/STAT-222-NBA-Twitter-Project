@@ -3,6 +3,7 @@ library(dplyr)
 library(reshape2)
 library(ggplot2)
 library(gridExtra)
+library(grid)
 
 ##########Preprocessing##########
 # Read data
@@ -47,7 +48,7 @@ X <- tweet_NBA[setdiff(names(tweet_NBA),
 row.names(X) <- tweet_NBA$Player
 
 names(X) <- c("# of Tweets", "Followers", "Friends",
-              "Game", "Game Started", "Minute Played",
+              "# of Game", "# of Game Started", "Minute Played",
               "3-Point Made", "3-Point Attempts",
               "2-Point Made", "2-Point Attempts",
               "Free Throw Made", "Free Throw Attempts",
@@ -76,7 +77,7 @@ cor_df$Var1 <- factor(as.character(cor_df$Var1), levels=rev(names(X)))
 ##########Figure1: Correlation matrix##########
 g1 <- ggplot(cor_df, aes(x=Var1, y=Var2, fill=value)) +
   geom_tile() + coord_flip() +
-  scale_fill_distiller("Correlation", palette="RdBu", limits=c(-1, 1)) + 
+  scale_fill_continuous("Correlation", high="red", low="white", limits=c(-0.10, 1)) + 
   scale_y_discrete(labels=match_label) +
   labs(title="Tweet and Performance Correlation Matrix", x="", y="") +
   theme(plot.title=element_text(size=25, face="bold"),
@@ -102,7 +103,7 @@ g2 <- ggplot(tweet_NBA, aes(x=PTS, y=log(followers), color=TOV2)) +
   scale_color_discrete("Turnover",
                        breaks= c("[0,50]", "(50,100]", "(100,Inf]"),
                        labels=c("< 50", "50 ~ 100", "> 100")) + 
-  labs(title="Players' Number of Followers (log scale) vs. Points\nColor-Coded by Turnovers",
+  labs(title="Players' Number of Followers vs. Points\nColor-coded by Turnovers",
        x="Points", y="Followers (log scale)") +
   theme(axis.text.x=element_text(size=13),
         axis.text.y=element_text(size=13),
@@ -156,7 +157,7 @@ tweet_follow <- merge(follower, tweet_NBA, all.x=TRUE)
 
 # Divided into three categories
 tweet_follow$followers_team <- cut(tweet_follow$followers_in_team,
-                                   c(0, 3, 7, Inf), include.lowest=TRUE)
+                                   c(0, 4, 8, Inf), include.lowest=TRUE)
 
 change_format <- function(l) {
   # turn in to character string in scientific notation
@@ -180,8 +181,8 @@ g41 <- ggplot(tweet_follow[tweet_follow$AST !=0, ], aes(x=log(AST), y=MP, color=
 g42 <- ggplot(tweet_follow, aes(x=MP, fill=followers_team, color=followers_team)) +
   geom_density(alpha=0.5) +
   scale_fill_discrete("# of\nfollower\nin team",
-                      breaks=c("[0,3]", "(3,7]", "(7,Inf]"),
-                      labels=c("< 3", "3 ~ 7", "> 7")) + 
+                      breaks=c("[0,4]", "(4,8]", "(8,Inf]"),
+                      labels=c("< 4", "4 ~ 8", "> 8")) + 
   coord_flip() + labs(x="", y=expression(paste("Density (", 10^-4, ")"))) +
   scale_color_discrete(guide=FALSE) + 
   theme(axis.text.x=element_text(size=10),
