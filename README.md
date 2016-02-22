@@ -1,4 +1,4 @@
-# STAT_222_Twitter
+# STAT 222 NBA Twitter Project
 
 * [NBA's Teams Tweet List](https://twitter.com/NBA/lists/nbateams)
 
@@ -6,4 +6,4 @@
 
 * [Players' tweets json file](https://drive.google.com/a/berkeley.edu/folderview?id=0B5JiutD3geSVWVRmV2l5bDNWQW8&usp=sharing)
 
-* [Players' performance 2016](http://www.basketball-reference.com/leagues/NBA_2016_totals.html?lid=header_seasons)
+* [Basketball Reference](http://www.basketball-reference.com/leagues/NBA_2016_totals.html?lid=header_seasons)
